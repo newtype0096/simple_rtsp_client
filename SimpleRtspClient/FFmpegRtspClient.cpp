@@ -28,7 +28,7 @@ void FFmpegRtspClient::SetFrameReceiveCallback(void* clientData, FrameReceiveCal
 	m_audioFrameReceiveCallback = audio;
 }
 
-bool FFmpegRtspClient::Open(const char* rtspURL, int timeout)
+bool FFmpegRtspClient::Open(const char* rtspURL, bool useTcp, int timeout)
 {
 	if (m_formatContext) Close();
 
@@ -40,7 +40,7 @@ bool FFmpegRtspClient::Open(const char* rtspURL, int timeout)
 
 	AVDictionary* options{};
 	av_dict_set(&options, "stimeout", usTimeout.c_str(), 0);
-	av_dict_set(&options, "rtsp_transport", "tcp", 0);
+	av_dict_set(&options, "rtsp_transport", useTcp ? "tcp" : "udp", 0);
 
 	int err = avformat_open_input(&m_formatContext, rtspURL, nullptr, &options);
 	av_dict_free(&options);

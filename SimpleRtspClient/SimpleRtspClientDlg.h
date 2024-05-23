@@ -41,5 +41,5 @@ private:
 
 	SDL2VideoRenderer* m_videoRenderer;
 
-	static void ReceiveVideo(void* clientData, int width, int height, AVFrame* frame);
+	static void ReceiveDecodedVideoFrame(void* clientData, int width, int height, AVFrame* frame);
 };

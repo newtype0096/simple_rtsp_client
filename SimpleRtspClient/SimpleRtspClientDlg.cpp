@@ -105,8 +105,8 @@ BOOL CSimpleRtspClientDlg::OnInitDialog()
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	m_ffmpegRtspClient = new FFmpegRtspClient;
-	m_ffmpegRtspClient->SetFrameReceiveCallback(this, ReceiveVideo, nullptr);
-	m_ffmpegRtspClient->Open("rtsp://127.0.0.1:554/stream");
+	m_ffmpegRtspClient->SetFrameReceiveCallback(this, ReceiveDecodedVideoFrame, nullptr);
+	m_ffmpegRtspClient->Open("rtsp://127.0.0.1:8554/test", true);
 
 	AVHWDeviceType HWtype;
 	FFmpegHelper::ConfigureHWDecoder(&HWtype);
@@ -186,16 +186,16 @@ void CSimpleRtspClientDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
 
-	if (m_videoFrameConverter)
-	{
-		delete m_videoFrameConverter;
-		m_videoFrameConverter = nullptr;
-	}
-
 	if (m_ffmpegRtspClient)
 	{
 		delete m_ffmpegRtspClient;
 		m_ffmpegRtspClient = nullptr;
+	}
+
+	if (m_videoFrameConverter)
+	{
+		delete m_videoFrameConverter;
+		m_videoFrameConverter = nullptr;
 	}
 
 	if (m_videoRenderer)
@@ -205,7 +205,7 @@ void CSimpleRtspClientDlg::OnDestroy()
 	}
 }
 
-void CSimpleRtspClientDlg::ReceiveVideo(void* clientData, int width, int height, AVFrame* frame)
+void CSimpleRtspClientDlg::ReceiveDecodedVideoFrame(void* clientData, int width, int height, AVFrame* frame)
 {
 	CSimpleRtspClientDlg* object = (CSimpleRtspClientDlg*)clientData;
 	if (!object->m_videoFrameConverter || !object->m_videoRenderer) return;

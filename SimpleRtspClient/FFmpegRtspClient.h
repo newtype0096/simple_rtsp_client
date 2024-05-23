@@ -12,7 +12,7 @@ public:
 	typedef void (FrameReceiveCallback)(void* clientData, int width, int height, AVFrame* frame);
 	void SetFrameReceiveCallback(void* clientData, FrameReceiveCallback* video, FrameReceiveCallback*);
 
-	bool Open(const char* rtspURL, int timeout = 3);
+	bool Open(const char* rtspURL, bool useTcp, int timeout = 3);
 	bool IsOpened(void) const { return m_isOpened; }
 
 	void Close();
