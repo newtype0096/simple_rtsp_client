@@ -7,7 +7,7 @@
 #include "SimpleRtspClient.h"
 #include "SimpleRtspClientDlg.h"
 #include "afxdialogex.h"
-#include "FFmpegHelper.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -29,7 +29,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
 
-// 구현입니다.
+	// 구현입니다.
 protected:
 	DECLARE_MESSAGE_MAP()
 };
@@ -53,8 +53,7 @@ END_MESSAGE_MAP()
 
 CSimpleRtspClientDlg::CSimpleRtspClientDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_SIMPLERTSPCLIENT_DIALOG, pParent)
-	, m_ffmpegRtspClient(nullptr)
-	, m_videoRenderer(nullptr)
+	, m_liveStreamControl(nullptr)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -68,6 +67,7 @@ BEGIN_MESSAGE_MAP(CSimpleRtspClientDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_SIZE()
 	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
@@ -104,29 +104,12 @@ BOOL CSimpleRtspClientDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
-	m_ffmpegRtspClient = new FFmpegRtspClient;
-	m_ffmpegRtspClient->SetFrameReceiveCallback(this, ReceiveDecodedVideoFrame, nullptr);
-	m_ffmpegRtspClient->Open("rtsp://127.0.0.1:554/test", false);
+	CRect rect;
+	GetClientRect(rect);
 
-	AVHWDeviceType HWtype;
-	FFmpegHelper::ConfigureHWDecoder(&HWtype);
-
-	auto srcFormat = HWtype == AV_HWDEVICE_TYPE_NONE
-		? m_ffmpegRtspClient->GetVideoPixelFormat()
-		: FFmpegHelper::GetHWPixelFormat(HWtype);
-
-	m_videoFrameConverter = new FFmpegVideoFrameConverter;
-	m_videoFrameConverter->Create(m_ffmpegRtspClient->GetVideoWidth(),
-		m_ffmpegRtspClient->GetVideoHeight(),
-		srcFormat,
-		m_ffmpegRtspClient->GetVideoWidth(),
-		m_ffmpegRtspClient->GetVideoHeight(),
-		AV_PIX_FMT_YUYV422);
-
-	m_videoRenderer = new SDL2VideoRenderer();
-	m_videoRenderer->Create(GetSafeHwnd(),
-		m_ffmpegRtspClient->GetVideoWidth(), 
-		m_ffmpegRtspClient->GetVideoHeight());
+	m_liveStreamControl = new LiveStreamControl();
+	m_liveStreamControl->Create(nullptr, nullptr, WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, CRect(0, 0, rect.right, rect.bottom), this, 1);
+	m_liveStreamControl->Open("rtsp://127.0.0.1:554/test", false);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -180,35 +163,24 @@ HCURSOR CSimpleRtspClientDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+void CSimpleRtspClientDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+
+	if (m_liveStreamControl && m_liveStreamControl->GetSafeHwnd())
+	{
+		m_liveStreamControl->SetWindowPos(nullptr, -1, -1, cx, cy, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
+	}
+}
+
 void CSimpleRtspClientDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
 
-	if (m_ffmpegRtspClient)
+	if (m_liveStreamControl)
 	{
-		delete m_ffmpegRtspClient;
-		m_ffmpegRtspClient = nullptr;
+		m_liveStreamControl->DestroyWindow();
+		delete m_liveStreamControl;
+		m_liveStreamControl = nullptr;
 	}
-
-	if (m_videoFrameConverter)
-	{
-		delete m_videoFrameConverter;
-		m_videoFrameConverter = nullptr;
-	}
-
-	if (m_videoRenderer)
-	{
-		delete m_videoRenderer;
-		m_videoRenderer = nullptr;
-	}
-}
-
-void CSimpleRtspClientDlg::ReceiveDecodedVideoFrame(void* clientData, int width, int height, AVFrame* frame)
-{
-	CSimpleRtspClientDlg* object = (CSimpleRtspClientDlg*)clientData;
-	if (!object->m_videoFrameConverter || !object->m_videoRenderer) return;
-
-	auto convertedFrame = object->m_videoFrameConverter->Convert(frame);
-	object->m_videoRenderer->Update(convertedFrame->data[0], convertedFrame->linesize[0]);
-	object->m_videoRenderer->Present();
 }

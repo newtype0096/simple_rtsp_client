@@ -3,9 +3,7 @@
 //
 
 #pragma once
-#include "SDL2VideoRenderer.h"
-#include "FFmpegRtspClient.h"
-#include "FFmpegVideoFrameConverter.h"
+#include "LiveStreamControl.h"
 
 // CSimpleRtspClientDlg 대화 상자
 class CSimpleRtspClientDlg : public CDialogEx
@@ -32,14 +30,10 @@ protected:
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnDestroy();
 	DECLARE_MESSAGE_MAP()
 
 private:
-	FFmpegRtspClient* m_ffmpegRtspClient;
-	FFmpegVideoFrameConverter* m_videoFrameConverter;
-
-	SDL2VideoRenderer* m_videoRenderer;
-
-	static void ReceiveDecodedVideoFrame(void* clientData, int width, int height, AVFrame* frame);
+	LiveStreamControl* m_liveStreamControl;
 };
