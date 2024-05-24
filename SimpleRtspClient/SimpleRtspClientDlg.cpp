@@ -115,16 +115,13 @@ BOOL CSimpleRtspClientDlg::OnInitDialog()
 		? m_ffmpegRtspClient->GetVideoPixelFormat()
 		: FFmpegHelper::GetHWPixelFormat(HWtype);
 
-	CRect rect;
-	GetClientRect(rect);
-
 	m_videoFrameConverter = new FFmpegVideoFrameConverter;
 	m_videoFrameConverter->Create(m_ffmpegRtspClient->GetVideoWidth(),
 		m_ffmpegRtspClient->GetVideoHeight(),
 		srcFormat,
-		rect.Width(),
-		rect.Height(),
-		AV_PIX_FMT_YUYV422);
+		m_ffmpegRtspClient->GetVideoWidth(),
+		m_ffmpegRtspClient->GetVideoHeight(),
+		AV_PIX_FMT_BGRA);
 
 	m_videoRenderer = new SDL2VideoRenderer();
 	m_videoRenderer->Create(GetSafeHwnd(),
