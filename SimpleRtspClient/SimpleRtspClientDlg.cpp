@@ -106,7 +106,7 @@ BOOL CSimpleRtspClientDlg::OnInitDialog()
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	m_ffmpegRtspClient = new FFmpegRtspClient;
 	m_ffmpegRtspClient->SetFrameReceiveCallback(this, ReceiveDecodedVideoFrame, nullptr);
-	m_ffmpegRtspClient->Open("rtsp://127.0.0.1:8554/test", true);
+	m_ffmpegRtspClient->Open("rtsp://127.0.0.1:554/test", false);
 
 	AVHWDeviceType HWtype;
 	FFmpegHelper::ConfigureHWDecoder(&HWtype);
@@ -121,11 +121,12 @@ BOOL CSimpleRtspClientDlg::OnInitDialog()
 		srcFormat,
 		m_ffmpegRtspClient->GetVideoWidth(),
 		m_ffmpegRtspClient->GetVideoHeight(),
-		AV_PIX_FMT_BGRA);
+		AV_PIX_FMT_YUYV422);
 
 	m_videoRenderer = new SDL2VideoRenderer();
 	m_videoRenderer->Create(GetSafeHwnd(),
-		m_ffmpegRtspClient->GetVideoWidth(), m_ffmpegRtspClient->GetVideoHeight());
+		m_ffmpegRtspClient->GetVideoWidth(), 
+		m_ffmpegRtspClient->GetVideoHeight());
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }

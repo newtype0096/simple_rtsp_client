@@ -25,7 +25,7 @@ bool SDL2VideoRenderer::Create(HWND hWnd, int srcWidth, int srcHeight)
 	if (!m_renderer) return false;
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-	m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STREAMING, srcWidth, srcHeight);
+	m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_YUY2, SDL_TEXTUREACCESS_STREAMING, srcWidth, srcHeight);
 	if (!m_texture) return false;
 
 	m_isCreated = true;
