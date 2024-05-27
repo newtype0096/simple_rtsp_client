@@ -4,7 +4,6 @@
 #include "pch.h"
 #include "SimpleRtspClient.h"
 #include "LiveStreamControl.h"
-#include "FFmpegHelper.h"
 
 
 // LiveStreamControl
@@ -66,17 +65,10 @@ bool LiveStreamControl::Open(const char* rtspURL, bool useTcp)
 	m_ffmpegRtspClient->SetFrameReceiveCallback(this, ReceiveDecodedVideoFrame, nullptr);
 	if (!m_ffmpegRtspClient->Open(rtspURL, useTcp)) return false;
 
-	AVHWDeviceType HWtype;
-	FFmpegHelper::ConfigureHWDecoder(&HWtype);
-
-	auto srcFormat = HWtype == AV_HWDEVICE_TYPE_NONE
-		? m_ffmpegRtspClient->GetVideoPixelFormat()
-		: FFmpegHelper::GetHWPixelFormat(HWtype);
-
 	m_videoFrameConverter = new FFmpegVideoFrameConverter;
 	if (!m_videoFrameConverter->Create(m_ffmpegRtspClient->GetVideoWidth(),
 		m_ffmpegRtspClient->GetVideoHeight(),
-		srcFormat,
+		m_ffmpegRtspClient->GetVideoPixelFormat(),
 		m_ffmpegRtspClient->GetVideoWidth(),
 		m_ffmpegRtspClient->GetVideoHeight(),
 		AV_PIX_FMT_YUYV422)) return false;

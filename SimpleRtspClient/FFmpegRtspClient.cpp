@@ -143,7 +143,12 @@ int FFmpegRtspClient::GetVideoHeight(void)
 AVPixelFormat FFmpegRtspClient::GetVideoPixelFormat(void)
 {
 	if (!m_isOpened || !m_videoCodecContext) return AV_PIX_FMT_NONE;
-	return m_videoCodecContext->pix_fmt;
+
+	AVHWDeviceType HWtype;
+	FFmpegHelper::ConfigureHWDecoder(&HWtype);
+
+	return HWtype == AV_HWDEVICE_TYPE_NONE ? 
+		m_videoCodecContext->pix_fmt : FFmpegHelper::GetHWPixelFormat(HWtype);
 }
 
 void FFmpegRtspClient::FrameGettingThreadProc(void* param)

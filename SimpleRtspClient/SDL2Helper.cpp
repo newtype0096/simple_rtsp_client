@@ -6,7 +6,7 @@ void SDL2Helper::Init()
 	static bool isInit = false;
 	if (isInit) return;
 
-	assert(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) == 0);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
 	isInit = true;
 }
