@@ -27,7 +27,8 @@ LiveStreamControl::~LiveStreamControl()
 
 BEGIN_MESSAGE_MAP(LiveStreamControl, CWnd)
 	ON_WM_CREATE()
-	ON_WM_DESTROY()
+	ON_WM_SIZE()
+	ON_WM_DESTROY()	
 END_MESSAGE_MAP()
 
 
@@ -43,6 +44,16 @@ int LiveStreamControl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// TODO:  여기에 특수화된 작성 코드를 추가합니다.
 	return 0;
+}
+
+void LiveStreamControl::OnSize(UINT nType, int cx, int cy)
+{
+	CWnd::OnSize(nType, cx, cy);
+
+	if (m_videoRenderer)
+	{
+		m_videoRenderer->Resize(cx, cy);
+	}
 }
 
 void LiveStreamControl::OnDestroy()

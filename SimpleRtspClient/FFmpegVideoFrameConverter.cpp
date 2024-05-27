@@ -25,7 +25,7 @@ bool FFmpegVideoFrameConverter::Create(int srcWidth, int srcHeight, AVPixelForma
 
 	m_swsContext = sws_getContext(srcWidth, srcHeight, srcFormat,
 		dstWidth, dstHeight, dstFormat,
-		SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
+		SWS_BICUBIC, nullptr, nullptr, nullptr);
 	if (!m_swsContext) return false;
 
 	m_dstBufferSize = av_image_get_buffer_size(dstFormat, dstWidth, dstHeight, 1);
