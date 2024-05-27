@@ -169,7 +169,7 @@ void CSimpleRtspClientDlg::OnSize(UINT nType, int cx, int cy)
 
 	if (m_liveStreamControl && m_liveStreamControl->GetSafeHwnd())
 	{
-		m_liveStreamControl->SetWindowPos(nullptr, -1, -1, cx, cy, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
+		m_liveStreamControl->Resize(cx, cy);
 	}
 }
 

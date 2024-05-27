@@ -19,6 +19,9 @@ public:
 
 	void Resize(int width, int height);
 
+	void Lock(void) { m_cs.lock(); }
+	void Unlock(void) { m_cs.unlock(); }
+
 private:
 	SDL_Window* m_window;
 	SDL_Renderer* m_renderer;
@@ -26,5 +29,5 @@ private:
 
 	bool m_isCreated;
 
-	std::mutex m_cs;
+	std::recursive_mutex m_cs;
 };

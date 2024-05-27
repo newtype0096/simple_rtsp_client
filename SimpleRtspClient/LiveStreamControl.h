@@ -24,6 +24,8 @@ public:
 	bool Open(const char* rtspURL, bool useTcp);
 	void Close(void);
 
+	void Resize(int width, int height);
+
 private:
 	FFmpegRtspClient* m_ffmpegRtspClient;
 	FFmpegVideoFrameConverter* m_videoFrameConverter;

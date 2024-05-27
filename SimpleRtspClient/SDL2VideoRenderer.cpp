@@ -18,7 +18,7 @@ bool SDL2VideoRenderer::Create(HWND hWnd, int srcWidth, int srcHeight)
 {
 	if (m_window) Close();
 
-	std::unique_lock<std::mutex> lock(m_cs);
+	std::unique_lock<std::recursive_mutex> lock(m_cs);
 
 	m_window = SDL_CreateWindowFrom(hWnd);
 	if (!m_window) return false;
@@ -36,7 +36,7 @@ bool SDL2VideoRenderer::Create(HWND hWnd, int srcWidth, int srcHeight)
 
 void SDL2VideoRenderer::Close(void)
 {
-	std::unique_lock<std::mutex> lock(m_cs);
+	std::unique_lock<std::recursive_mutex> lock(m_cs);
 
 	m_isCreated = false;
 
@@ -61,7 +61,7 @@ void SDL2VideoRenderer::Close(void)
 
 void SDL2VideoRenderer::Update(unsigned char* yuy2Data, int lineSize)
 {
-	std::unique_lock<std::mutex> lock(m_cs);
+	std::unique_lock<std::recursive_mutex> lock(m_cs);
 
 	if (!m_texture || !m_isCreated) return;
 
@@ -70,7 +70,7 @@ void SDL2VideoRenderer::Update(unsigned char* yuy2Data, int lineSize)
 
 void SDL2VideoRenderer::Present(void)
 {
-	std::unique_lock<std::mutex> lock(m_cs);
+	std::unique_lock<std::recursive_mutex> lock(m_cs);
 
 	if (!m_renderer || !m_texture || !m_isCreated) return;
 
@@ -81,7 +81,7 @@ void SDL2VideoRenderer::Present(void)
 
 void SDL2VideoRenderer::Resize(int width, int height)
 {
-	std::unique_lock<std::mutex> lock(m_cs);
+	std::unique_lock<std::recursive_mutex> lock(m_cs);
 
 	if (!m_window || !m_renderer || !m_texture || !m_isCreated) return;
 

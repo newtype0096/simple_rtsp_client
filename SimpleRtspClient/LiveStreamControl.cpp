@@ -49,11 +49,6 @@ int LiveStreamControl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void LiveStreamControl::OnSize(UINT nType, int cx, int cy)
 {
 	CWnd::OnSize(nType, cx, cy);
-
-	if (m_videoRenderer)
-	{
-		m_videoRenderer->Resize(cx, cy);
-	}
 }
 
 void LiveStreamControl::OnDestroy()
@@ -113,6 +108,16 @@ void LiveStreamControl::Close(void)
 		delete m_videoRenderer;
 		m_videoRenderer = nullptr;
 	}
+}
+
+void LiveStreamControl::Resize(int width, int height)
+{
+	if (!m_videoRenderer) return;
+
+	m_videoRenderer->Lock();
+	m_videoRenderer->Resize(width, height);
+	SetWindowPos(nullptr, -1, -1, width, height, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOREDRAW);
+	m_videoRenderer->Unlock();
 }
 
 void LiveStreamControl::ReceiveDecodedVideoFrame(void* clientData, int width, int height, AVFrame* frame)
