@@ -109,7 +109,7 @@ BOOL CSimpleRtspClientDlg::OnInitDialog()
 
 	m_liveStreamControl = new LiveStreamControl();
 	m_liveStreamControl->Create(nullptr, nullptr, WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, CRect(0, 0, rect.right, rect.bottom), this, 1);
-	m_liveStreamControl->Open("rtsp://127.0.0.1:554/test", false);
+	m_liveStreamControl->Open("rtsp://127.0.0.1:8554/test", true);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }

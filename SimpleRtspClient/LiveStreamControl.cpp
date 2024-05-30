@@ -5,7 +5,6 @@
 #include "SimpleRtspClient.h"
 #include "LiveStreamControl.h"
 
-
 // LiveStreamControl
 
 IMPLEMENT_DYNAMIC(LiveStreamControl, CWnd)
@@ -15,7 +14,6 @@ LiveStreamControl::LiveStreamControl()
 	, m_videoFrameConverter(nullptr)
 	, m_videoRenderer(nullptr)
 {
-
 }
 
 LiveStreamControl::~LiveStreamControl()
@@ -23,18 +21,13 @@ LiveStreamControl::~LiveStreamControl()
 	Close();
 }
 
-
 BEGIN_MESSAGE_MAP(LiveStreamControl, CWnd)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
-	ON_WM_DESTROY()	
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
-
-
 // LiveStreamControl 메시지 처리기
-
-
 
 int LiveStreamControl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
@@ -65,18 +58,23 @@ bool LiveStreamControl::Open(const char* rtspURL, bool useTcp)
 	m_ffmpegRtspClient->SetFrameReceiveCallback(this, ReceiveDecodedVideoFrame, nullptr);
 	if (!m_ffmpegRtspClient->Open(rtspURL, useTcp)) return false;
 
+	CRect rect;
+	GetClientRect(rect);
+
 	m_videoFrameConverter = new FFmpegVideoFrameConverter;
 	if (!m_videoFrameConverter->Create(m_ffmpegRtspClient->GetVideoWidth(),
 		m_ffmpegRtspClient->GetVideoHeight(),
 		m_ffmpegRtspClient->GetVideoPixelFormat(),
-		m_ffmpegRtspClient->GetVideoWidth(),
-		m_ffmpegRtspClient->GetVideoHeight(),
+		rect.Width(),
+		rect.Height(),
 		AV_PIX_FMT_YUYV422)) return false;
 
 	m_videoRenderer = new SDL2VideoRenderer();
 	if (!m_videoRenderer->Create(GetSafeHwnd(),
 		m_ffmpegRtspClient->GetVideoWidth(),
-		m_ffmpegRtspClient->GetVideoHeight())) return false;
+		m_ffmpegRtspClient->GetVideoHeight(),
+		rect.Width(),
+		rect.Height())) return false;
 
 	return false;
 }
@@ -104,17 +102,27 @@ void LiveStreamControl::Close(void)
 
 void LiveStreamControl::Resize(int width, int height)
 {
-	if (!m_videoRenderer) return;
+	std::unique_lock<std::mutex> lock(m_cs);
+	if (!m_videoRenderer || !m_ffmpegRtspClient) return;
 
-	m_videoRenderer->Lock();
-	m_videoRenderer->Resize(width, height);
 	SetWindowPos(nullptr, -1, -1, width, height, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOREDRAW);
-	m_videoRenderer->Unlock();
+
+	m_videoRenderer->Create(GetSafeHwnd(),
+		m_ffmpegRtspClient->GetVideoWidth(),
+		m_ffmpegRtspClient->GetVideoHeight(),
+		width, height);
+	m_videoFrameConverter->Create(m_ffmpegRtspClient->GetVideoWidth(),
+		m_ffmpegRtspClient->GetVideoHeight(),
+		m_ffmpegRtspClient->GetVideoPixelFormat(),
+		width, height,
+		AV_PIX_FMT_YUYV422);
 }
 
 void LiveStreamControl::ReceiveDecodedVideoFrame(void* clientData, int width, int height, AVFrame* frame)
 {
 	LiveStreamControl* object = (LiveStreamControl*)clientData;
+
+	std::unique_lock<std::mutex> lock(object->m_cs);
 	if (!object->m_videoFrameConverter || !object->m_videoRenderer) return;
 
 	auto convertedFrame = object->m_videoFrameConverter->Convert(frame);

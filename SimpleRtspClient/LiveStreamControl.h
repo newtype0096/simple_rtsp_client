@@ -1,8 +1,8 @@
 #pragma once
+#include <mutex>
 #include "SDL2VideoRenderer.h"
 #include "FFmpegRtspClient.h"
 #include "FFmpegVideoFrameConverter.h"
-
 
 // LiveStreamControl
 
@@ -33,4 +33,6 @@ private:
 	SDL2VideoRenderer* m_videoRenderer;
 
 	static void ReceiveDecodedVideoFrame(void* clientData, int width, int height, AVFrame* frame);
+
+	std::mutex m_cs;
 };

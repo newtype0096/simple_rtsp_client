@@ -14,11 +14,11 @@ SDL2VideoRenderer::~SDL2VideoRenderer()
 	Close();
 }
 
-bool SDL2VideoRenderer::Create(HWND hWnd, int srcWidth, int srcHeight)
+bool SDL2VideoRenderer::Create(HWND hWnd, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
 	if (m_window) Close();
 
-	std::unique_lock<std::recursive_mutex> lock(m_cs);
+	std::unique_lock<std::mutex> lock(m_cs);
 
 	m_window = SDL_CreateWindowFrom(hWnd);
 	if (!m_window) return false;
@@ -26,8 +26,10 @@ bool SDL2VideoRenderer::Create(HWND hWnd, int srcWidth, int srcHeight)
 	m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 	if (!m_renderer) return false;
 
+	SDL_RenderSetLogicalSize(m_renderer, srcWidth, srcHeight);
+
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-	m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_YUY2, SDL_TEXTUREACCESS_STREAMING, srcWidth, srcHeight);
+	m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_YUY2, SDL_TEXTUREACCESS_STREAMING, dstWidth, dstHeight);
 	if (!m_texture) return false;
 
 	m_isCreated = true;
@@ -36,7 +38,7 @@ bool SDL2VideoRenderer::Create(HWND hWnd, int srcWidth, int srcHeight)
 
 void SDL2VideoRenderer::Close(void)
 {
-	std::unique_lock<std::recursive_mutex> lock(m_cs);
+	std::unique_lock<std::mutex> lock(m_cs);
 
 	m_isCreated = false;
 
@@ -61,7 +63,7 @@ void SDL2VideoRenderer::Close(void)
 
 void SDL2VideoRenderer::Update(unsigned char* yuy2Data, int lineSize)
 {
-	std::unique_lock<std::recursive_mutex> lock(m_cs);
+	std::unique_lock<std::mutex> lock(m_cs);
 
 	if (!m_texture || !m_isCreated) return;
 
@@ -70,7 +72,7 @@ void SDL2VideoRenderer::Update(unsigned char* yuy2Data, int lineSize)
 
 void SDL2VideoRenderer::Present(void)
 {
-	std::unique_lock<std::recursive_mutex> lock(m_cs);
+	std::unique_lock<std::mutex> lock(m_cs);
 
 	if (!m_renderer || !m_texture || !m_isCreated) return;
 
@@ -81,7 +83,7 @@ void SDL2VideoRenderer::Present(void)
 
 void SDL2VideoRenderer::Resize(int width, int height)
 {
-	std::unique_lock<std::recursive_mutex> lock(m_cs);
+	std::unique_lock<std::mutex> lock(m_cs);
 
 	if (!m_window || !m_renderer || !m_texture || !m_isCreated) return;
 

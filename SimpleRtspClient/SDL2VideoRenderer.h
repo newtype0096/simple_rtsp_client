@@ -8,7 +8,7 @@ public:
 	SDL2VideoRenderer();
 	virtual ~SDL2VideoRenderer();
 
-	bool Create(HWND hWnd, int srcWidth, int srcHeight);
+	bool Create(HWND hWnd, int srcWidth, int srcHeight, int dstWidth, int dstHeight);
 	bool IsCreated(void) const { return m_isCreated; }
 
 	void Close(void);
@@ -19,9 +19,6 @@ public:
 
 	void Resize(int width, int height);
 
-	void Lock(void) { m_cs.lock(); }
-	void Unlock(void) { m_cs.unlock(); }
-
 private:
 	SDL_Window* m_window;
 	SDL_Renderer* m_renderer;
@@ -29,5 +26,5 @@ private:
 
 	bool m_isCreated;
 
-	std::recursive_mutex m_cs;
+	std::mutex m_cs;
 };
